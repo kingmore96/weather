@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * RestTemplate配置。使用RestTemplateBuilder创建实例
+ */
 @Configuration
 public class RestTemplateConfiguration {
 
@@ -18,8 +21,4 @@ public class RestTemplateConfiguration {
         return restTemplateBuilder.build();
     }
 
-//    @Bean
-//    public ObjectMapper objectMapper(){
-//        return new ObjectMapper();
-//    }
 }

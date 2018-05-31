@@ -1,8 +1,9 @@
 package com.ging.weather.controller;
 
 import com.ging.weather.pojo.Weather;
+import com.ging.weather.pojo.WeatherResponse;
 import com.ging.weather.service.CityDataService;
-import com.ging.weather.service.WeatherReportService;
+import com.ging.weather.service.WeatherDataService;
 import com.ging.weather.util.IpAddressUtil;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
@@ -13,7 +14,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
@@ -23,6 +23,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 
+/**
+ * 面向客户的controller层，返回一个ModelAndView
+ */
 @RestController
 @RequestMapping("/report")
 public class WeatherReportController {
@@ -31,17 +34,39 @@ public class WeatherReportController {
     private CityDataService cityDataService;
 
     @Autowired
-    private WeatherReportService weatherReportService;
+    private WeatherDataService weatherDataService;
 
-    @RequestMapping("/cityId/{cityId}")
-    public ModelAndView getReportByCityId(@PathVariable String cityId,Model model) throws Exception {
-        model.addAttribute("title","老王的天气预报");
-        model.addAttribute("report",weatherReportService.getReportByCityId(cityId));
+    /**
+     * 根据用户ip地址查询天气信息
+     * @param model
+     * @param request
+     * @return
+     * @throws IOException
+     * @throws GeoIp2Exception
+     */
+    @GetMapping("/latest")
+    public ModelAndView getReportByCityName(Model model, HttpServletRequest request) throws IOException, GeoIp2Exception {
+        //参数格式转换
+        String cityName = getCityName(request);
+
+        //调用service查询该城市对应天气
+        WeatherResponse weatherResponse = weatherDataService.getDataByCityName(cityName);
+
+        //构造ModelAndView
+        model.addAttribute("title","老王的天气预报,小任专属");
+        model.addAttribute("report",weatherResponse.getData());
+        model.addAttribute("cityName",cityName);
         return new ModelAndView("weather/report","reportModel",model);
     }
 
-    @GetMapping("/latest")
-    public ModelAndView getReportByCityName(Model model, HttpServletRequest request) throws IOException, GeoIp2Exception {
+    /**
+     * 根据request得到ip地址，根据ip地址得到用户城市名称
+     * @param request
+     * @return
+     * @throws IOException
+     * @throws GeoIp2Exception
+     */
+    private String getCityName(HttpServletRequest request) throws IOException, GeoIp2Exception {
         //通过request得到ip地址
         String ipAddr = IpAddressUtil.getIpAdrress(request);
 
@@ -51,17 +76,9 @@ public class WeatherReportController {
         DatabaseReader reader = new DatabaseReader.Builder(database).build();
         InetAddress ipAddress = InetAddress.getByName(ipAddr);
         CityResponse cityResponse = reader.city(ipAddress);
-
         //得到cityName
         City city = cityResponse.getCity();
-        String cityName = city.getNames().get("zh-CN");
-
-        //调用service查询该城市对应天气
-        Weather weather = weatherReportService.getReprtByCityName(cityName);
-        model.addAttribute("title","老王的天气预报,小任专属");
-        model.addAttribute("report",weather);
-        model.addAttribute("cityName",cityName);
-        return new ModelAndView("weather/report","reportModel",model);
+        return city.getNames().get("zh-CN");
     }
 
 }

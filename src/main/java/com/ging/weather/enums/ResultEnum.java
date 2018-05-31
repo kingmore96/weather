@@ -1,7 +1,10 @@
 package com.ging.weather.enums;
 
 public enum ResultEnum {
-    DATA_ERROR(100,"获取天气数据异常");
+    PARAM_ID_ERROR(1,"天气id不能为空"),
+    PARAM_NAME_ERROR(2,"天气名称不能为空"),
+    DATA_ERROR(100,"获取天气数据异常"),
+    UNKNOWN_ERROR(999,"未知异常");
 
     private Integer code;
     private String message;

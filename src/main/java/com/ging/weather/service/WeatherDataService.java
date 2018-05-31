@@ -2,6 +2,9 @@ package com.ging.weather.service;
 
 import com.ging.weather.pojo.WeatherResponse;
 
+/**
+ * 获取天气数据service
+ */
 public interface WeatherDataService {
 
     /**
